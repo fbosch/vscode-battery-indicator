@@ -47,23 +47,23 @@ suite("Battery Indicator", () => {
 
     suite('Power Color', () => {
         test('should be dark green at 100% power', () => {
-            assert.equal(batteryIndicator.getPowerColor(100), BatteryIndicator.COLORS.darkGreen)
+            assert.equal(batteryIndicator.getPowerColor(100), BatteryIndicator.COLORS.full)
         })
         test('should be light green at 80% to 99% power', () => {
-            assert.equal(batteryIndicator.getPowerColor(80), BatteryIndicator.COLORS.green)
-            assert.equal(batteryIndicator.getPowerColor(90), BatteryIndicator.COLORS.green)
+            assert.equal(batteryIndicator.getPowerColor(80), BatteryIndicator.COLORS.high)
+            assert.equal(batteryIndicator.getPowerColor(90), BatteryIndicator.COLORS.high)
         })
         test('should be yellow at 50% to 79% power ', () => {
-            assert.equal(batteryIndicator.getPowerColor(50), BatteryIndicator.COLORS.yellow)
-            assert.equal(batteryIndicator.getPowerColor(79), BatteryIndicator.COLORS.yellow)
+            assert.equal(batteryIndicator.getPowerColor(50), BatteryIndicator.COLORS.medium)
+            assert.equal(batteryIndicator.getPowerColor(79), BatteryIndicator.COLORS.medium)
         })
         test('should be red at 30% to 49% power', () => {
-            assert.equal(batteryIndicator.getPowerColor(30), BatteryIndicator.COLORS.red)
-            assert.equal(batteryIndicator.getPowerColor(49), BatteryIndicator.COLORS.red)
+            assert.equal(batteryIndicator.getPowerColor(30), BatteryIndicator.COLORS.low)
+            assert.equal(batteryIndicator.getPowerColor(49), BatteryIndicator.COLORS.low)
         })
         test('should be dark red below and equals 15% powe r', () => {
-            assert.equal(batteryIndicator.getPowerColor(1), BatteryIndicator.COLORS.darkRed)
-            assert.equal(batteryIndicator.getPowerColor(15), BatteryIndicator.COLORS.darkRed)
+            assert.equal(batteryIndicator.getPowerColor(1), BatteryIndicator.COLORS.veryLow)
+            assert.equal(batteryIndicator.getPowerColor(15), BatteryIndicator.COLORS.veryLow)
         })
     })
 })

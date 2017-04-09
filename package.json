@@ -1,12 +1,16 @@
 {
     "name": "battery-indicator",
     "displayName": "battery-indicator",
-    "description": "Shows your device battery info in the status bar",
-    "version": "0.0.2",
+    "description": "Shows your battery info in the status bar",
+    "version": "0.0.3",
     "publisher": "fbosch",
     "icon": "battery.png",
     "engines": {
         "vscode": "^1.10.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fBosch/vscode-battery-indicator"
     },
     "categories": [
         "Other"

@@ -70,11 +70,11 @@ export class BatteryIndicator {
     static BAR_LENGTH = 10
     static CHARGING_SYMBOL = '⚡'
     static COLORS = {
-        darkGreen: '#2D8633',
-        green: '#54A759',
-        yellow: '#AA9739',
-        red: '#AA3C39',
-        darkRed: '#801815'
+        full: '#8AE66C',
+        high: '#D8FA63',
+        medium: '#FED83A',
+        low: '#FD9943',
+        veryLow: '#FD5324'
     }
 
     private _battery
@@ -154,15 +154,15 @@ export class BatteryIndicator {
 
     getPowerColor(percentage) {
         if (percentage === 100) {
-            return BatteryIndicator.COLORS.darkGreen
+            return BatteryIndicator.COLORS.full
         } else if (percentage >= 80) {
-            return BatteryIndicator.COLORS.green
+            return BatteryIndicator.COLORS.high
         } else if (percentage >= 50) {
-            return BatteryIndicator.COLORS.yellow
+            return BatteryIndicator.COLORS.medium
         } else if (percentage >= 30) {
-            return BatteryIndicator.COLORS.red
+            return BatteryIndicator.COLORS.low
         } else if (percentage <= 15) {
-            return BatteryIndicator.COLORS.darkRed
+            return BatteryIndicator.COLORS.veryLow
         }
         return null
     }
