@@ -81,7 +81,7 @@ export class BatteryIndicator {
     private _battery
     private _statusBarItem: StatusBarItem
     private _pollingInterval
-    private _percentage
+    private _batteryPercentage
     private _chargingState
 
     public interval
@@ -126,13 +126,15 @@ export class BatteryIndicator {
             this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right)
         }
 
-        let batteryLevel = this.getBatteryState().then(level => this._percentage = level),
+        let batteryLevel = this.getBatteryState().then(level => this._batteryPercentage = level),
             chargingState = this.getChargingState().then(state => this._chargingState = state)
 
         Promise.all([batteryLevel, chargingState]).then(() => {
-            this._statusBarItem.color = this.getPowerColor(this._percentage)
+            this.updateStatusText(this._batteryPercentage, this._chargingState)
+            this._statusBarItem.color = this.getPowerColor(this._batteryPercentage)
             this._statusBarItem.show()
         }, () => {
+            console.warn('Current device does not have battery')
             this.dispose()
         })
     }
