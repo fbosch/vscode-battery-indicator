@@ -4,6 +4,7 @@
     "description": "Shows your device battery percentage in the status bar",
     "version": "0.0.1",
     "publisher": "fbosch",
+    "icon": "battery.png",
     "engines": {
         "vscode": "^1.10.0"
     },
