@@ -31,7 +31,12 @@
         "vscode": "^1.1.0"
     },
     "dependencies": {
+        "execa": "^0.6.3",
+        "is-charging": "^1.1.0",
+        "linux-battery": "^3.0.1",
         "node-power-info": "^0.1.6",
-        "pad-end": "^1.0.2"
+        "osx-battery": "^4.0.0",
+        "pad-end": "^1.0.2",
+        "to-decimal": "^2.0.0"
     }
 }

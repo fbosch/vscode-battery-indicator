@@ -1,20 +1,44 @@
-import * as batteryStatus from 'node-power-info'
+import * as execa from 'execa'
+import * as isCharging from 'is-charging'
+import * as linuxBattery from 'linux-battery'
+import * as osxBattery from 'osx-battery'
 import * as padEnd from 'pad-end'
+import * as powerInfo from 'node-power-info'
+import * as toDecimal from 'to-decimal'
 
 import { Disposable, ExtensionContext, StatusBarAlignment, StatusBarItem, TextDocument, commands, window } from 'vscode'
 
 export function activate(context: ExtensionContext) {
-    console.log('battery-indicator is now active!')
-    let batteryIndicator = new BatteryIndicator()
+    console.log('🔋  battery-indicator is now active!')
+
+    const unix = () => new Promise(resolve => powerInfo.getChargeStatus(batteryStats => resolve(batteryStats[0].powerLevel)))
+
+    const win = () => execa.stdout('WMIC', ['Path', 'Win32_Battery', 'Get', 'EstimatedChargeRemaining']).then(stdout => {
+        if (!stdout) {
+            return Promise.reject(new Error('No battery could be found'));
+        }
+        stdout = parseFloat(stdout.trim().split('\n')[1]);
+        return toDecimal(stdout > 100 ? 100 : stdout) * 100
+    })
+
+    let batteryLevelStateChecker
+    if (process.platform === 'darwin' || process.platform === 'linux') {
+        batteryLevelStateChecker = unix
+    } else {
+        batteryLevelStateChecker = win
+    }
+
+    let batteryIndicator = new BatteryIndicator(batteryLevelStateChecker, isCharging)
     let controller = new BatteryIndicatorController(batteryIndicator)
 
     context.subscriptions.push(controller)
     context.subscriptions.push(batteryIndicator)
 }
 
-class BatteryIndicatorController {
+export class BatteryIndicatorController {
     private _batteryIndicator: BatteryIndicator
     private _disposable: Disposable
+
     constructor(batteryIndicator: BatteryIndicator) {
         this._batteryIndicator = batteryIndicator
         this._batteryIndicator.updateStatus()
@@ -38,35 +62,56 @@ class BatteryIndicatorController {
 
 }
 
-class BatteryIndicator {
+export class BatteryIndicator {
 
-    static POLLING_INTERVAL = 30
+    static POLLING_INTERVAL = 30000
     static BATTERY_SECTION_FULL_SYMBOL = '|'
     static BATTERY_SECTION_EMPTY_SYMBOL = ' '
     static BAR_LENGTH = 10
+    /** ⚡ */
     static CHARGING_SYMBOL = '⚡'
+    static COLORS = {
+        darkGreen: '#2D8633',
+        green: '#54A759',
+        yellow: '#AA9739',
+        red: '#AA3C39',
+        darkRed: '#801815'
+    }
 
     private _battery
     private _statusBarItem: StatusBarItem
-    private _statusIcon
-    private _statusText
     private _pollingInterval
-    public interval
+    private _percentage
+    private _chargingState
 
-    constructor() {
+    public interval
+    public getBatteryState
+    public getChargingState
+
+    constructor(getBatteryState, getChargingState) {
+        this.getBatteryState = getBatteryState
+        this.getChargingState = getChargingState
+        this.updateStatus()
         this.pollingInterval = BatteryIndicator.POLLING_INTERVAL
     }
 
     set pollingInterval(pollingInterval) {
         if (pollingInterval) {
             pollingInterval = Math.max(pollingInterval, 1)
-            this._pollingInterval = 1000 * pollingInterval
+            this._pollingInterval = pollingInterval
             this.startPolling()
         }
     }
 
     get pollingInterval() {
         return this._pollingInterval
+    }
+
+    stopPolling() {
+        if (this.interval) {
+            clearInterval(this.interval)
+            this.interval = false
+        }
     }
 
     startPolling() {
@@ -77,47 +122,52 @@ class BatteryIndicator {
     }
 
     updateStatus() {
-        console.log('🔋 battery indicator updating')
         if (!this._statusBarItem) {
             this._statusBarItem = window.createStatusBarItem(StatusBarAlignment.Right)
         }
-        batteryStatus.getChargeStatus(batteryStats => {
-            let stats = batteryStats[0]
-            this.updateStatusText(stats)
-            this._statusBarItem.color = this.getPowerColor(stats.powerLevel)
+
+        let batteryLevel = this.getBatteryState().then(level => this._percentage = level),
+            chargingState = this.getChargingState().then(state => this._chargingState = state)
+
+        Promise.all([batteryLevel, chargingState]).then(() => {
+            this._statusBarItem.color = this.getPowerColor(this._percentage)
+            this._statusBarItem.show()
+        }, () => {
+            this.dispose()
         })
-        this._statusBarItem.show()
     }
 
-    getVisualIndicator(stats) {
+    getVisualIndicator(percentage, chargingState) {
         let bar = BatteryIndicator.BATTERY_SECTION_FULL_SYMBOL.repeat(BatteryIndicator.BAR_LENGTH)
-        let currentLevel = padEnd(BatteryIndicator.BATTERY_SECTION_FULL_SYMBOL.repeat((bar.length / 100) * stats.powerLevel), bar.length, BatteryIndicator.BATTERY_SECTION_EMPTY_SYMBOL)
-        return `[${currentLevel}] ${stats.chargeStatus == 'charging' ? BatteryIndicator.CHARGING_SYMBOL : ''}`
+        let currentLevel = padEnd(BatteryIndicator.BATTERY_SECTION_FULL_SYMBOL.repeat(Math.round((bar.length / 100) * percentage)), bar.length, BatteryIndicator.BATTERY_SECTION_EMPTY_SYMBOL)
+        return `[${currentLevel}] ${chargingState ? BatteryIndicator.CHARGING_SYMBOL : ''}`
     }
 
-    updateStatusText(stats) {
-        if (stats.powerLevel) {
-            this._statusBarItem.text = `${stats.powerLevel}% ${this.getVisualIndicator(stats)}`
+    updateStatusText(percentage, chargingState) {
+        if (percentage) {
+            this._statusBarItem.text = `${percentage}% ${this.getVisualIndicator(percentage, chargingState)}`
         } else {
-            console.warn(`battery-indicator: invalid value: ${stats.powerLevel}`)
+            console.warn(`battery-indicator: invalid value: ${percentage}`)
         }
     }
-    
+
     getPowerColor(percentage) {
-        if(percentage === 100) {
-            return '#2D8633'
-        } else if (percentage > 80 ) {
-            return '#54A759'
-        } else if (percentage > 50) {
-            return '#AA9739'
-        } else if (percentage > 30) {
-            return '#AA3C39'
-        } else if (percentage < 15) {
-            return '#801815'
+        if (percentage === 100) {
+            return BatteryIndicator.COLORS.darkGreen
+        } else if (percentage >= 80) {
+            return BatteryIndicator.COLORS.green
+        } else if (percentage >= 50) {
+            return BatteryIndicator.COLORS.yellow
+        } else if (percentage >= 30) {
+            return BatteryIndicator.COLORS.red
+        } else if (percentage <= 15) {
+            return BatteryIndicator.COLORS.darkRed
         }
+        return null
     }
 
     dispose() {
+        this.stopPolling()
         this._statusBarItem.dispose()
     }
 
