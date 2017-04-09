@@ -68,7 +68,6 @@ export class BatteryIndicator {
     static BATTERY_SECTION_FULL_SYMBOL = '|'
     static BATTERY_SECTION_EMPTY_SYMBOL = ' '
     static BAR_LENGTH = 10
-    /** ⚡ */
     static CHARGING_SYMBOL = '⚡'
     static COLORS = {
         darkGreen: '#2D8633',
