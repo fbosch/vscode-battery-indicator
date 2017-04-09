@@ -1,7 +1,7 @@
 {
     "name": "battery-indicator",
     "displayName": "battery-indicator",
-    "description": "Shows your device battery percentage in the status bar",
+    "description": "Shows your device battery info in the status bar",
     "version": "0.0.1",
     "publisher": "fbosch",
     "icon": "battery.png",
