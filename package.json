@@ -1,5 +1,5 @@
 {
-    "name": "vscode-battery-indicator",
+    "name": "battery-indicator",
     "displayName": "battery-indicator",
     "description": "Shows your battery info in the status bar",
     "version": "0.0.4",
