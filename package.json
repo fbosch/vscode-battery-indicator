@@ -1,6 +1,6 @@
 {
     "name": "battery-indicator",
-    "displayName": "battery-indicator",
+    "displayName": "Battery Indicator",
     "description": "Shows your battery info in the status bar",
     "version": "0.0.4",
     "publisher": "fbosch",
