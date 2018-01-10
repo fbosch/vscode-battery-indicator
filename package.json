@@ -2,7 +2,7 @@
     "name": "battery-indicator",
     "displayName": "Battery Indicator",
     "description": "Shows your battery info in the status bar",
-    "version": "0.0.4",
+    "version": "1.0.0",
     "publisher": "fbosch",
     "icon": "battery.png",
     "engines": {
