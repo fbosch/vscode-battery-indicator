@@ -18,7 +18,7 @@ export function activate(context: ExtensionContext) {
             return Promise.reject(new Error('No battery could be found'));
         }
         stdout = parseFloat(stdout.trim().split('\n')[1]);
-        return toDecimal(stdout > 100 ? 100 : stdout) * 100
+        return Math.round(toDecimal(stdout > 100 ? 100 : stdout) * 100)
     })
 
     let batteryLevelStateChecker
